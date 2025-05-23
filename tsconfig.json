@@ -1,18 +1,8 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "ESNext",
-    "moduleResolution": "Node",
-    "strict": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "resolveJsonModule": true,
-    "lib": ["dom", "esnext"]
-  },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"],
-  "extends": "@tsconfig/node22/tsconfig.json"
+    "target": "es2020",
+    "jsx": "react",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true
+  }
 }
