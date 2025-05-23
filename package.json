@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "deck.gl": "^9.1.12"
+  },
+  "devDependencies": {
+    "@tsconfig/node22": "^22.0.2",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  }
+}
