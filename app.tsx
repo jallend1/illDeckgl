@@ -2,39 +2,45 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) vis.gl contributors
 
-import React from 'react';
-import {createRoot} from 'react-dom/client';
-import {Map} from 'react-map-gl/maplibre';
-import {AmbientLight, PointLight, LightingEffect} from '@deck.gl/core';
-import {HexagonLayer} from '@deck.gl/aggregation-layers';
-import {DeckGL} from '@deck.gl/react';
-import {CSVLoader} from '@loaders.gl/csv';
-import {load} from '@loaders.gl/core';
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { Map } from "react-map-gl/maplibre";
+import { AmbientLight, PointLight, LightingEffect } from "@deck.gl/core";
+import { HexagonLayer } from "@deck.gl/aggregation-layers";
+import { DeckGL } from "@deck.gl/react";
+import { CSVLoader } from "@loaders.gl/csv";
+import { load } from "@loaders.gl/core";
 
-import type {Color, PickingInfo, MapViewState} from '@deck.gl/core';
+import type { Color, PickingInfo, MapViewState } from "@deck.gl/core";
 
 // Source data CSV
-const DATA_URL =
-  'https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/3d-heatmap/heatmap-data.csv'; // eslint-disable-line
+// const DATA_URL =
+//   'https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/3d-heatmap/heatmap-data.csv';
+
+const DATA_URL = "./data/withCoordinates.csv";
 
 const ambientLight = new AmbientLight({
   color: [255, 255, 255],
-  intensity: 1.0
+  intensity: 1.0,
 });
 
 const pointLight1 = new PointLight({
   color: [255, 255, 255],
   intensity: 0.8,
-  position: [-0.144528, 49.739968, 80000]
+  position: [-0.144528, 49.739968, 80000],
 });
 
 const pointLight2 = new PointLight({
   color: [255, 255, 255],
   intensity: 0.8,
-  position: [-3.807751, 54.104682, 8000]
+  position: [-3.807751, 54.104682, 8000],
 });
 
-const lightingEffect = new LightingEffect({ambientLight, pointLight1, pointLight2});
+const lightingEffect = new LightingEffect({
+  ambientLight,
+  pointLight1,
+  pointLight2,
+});
 
 const INITIAL_VIEW_STATE: MapViewState = {
   longitude: -1.415727,
@@ -43,10 +49,11 @@ const INITIAL_VIEW_STATE: MapViewState = {
   minZoom: 5,
   maxZoom: 15,
   pitch: 40.5,
-  bearing: -27
+  bearing: -27,
 };
 
-const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json';
+const MAP_STYLE =
+  "https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json";
 
 export const colorRange: Color[] = [
   [1, 152, 189],
@@ -54,10 +61,10 @@ export const colorRange: Color[] = [
   [216, 254, 181],
   [254, 237, 177],
   [254, 173, 84],
-  [209, 55, 78]
+  [209, 55, 78],
 ];
 
-function getTooltip({object}: PickingInfo) {
+function getTooltip({ object }: PickingInfo) {
   if (!object) {
     return null;
   }
@@ -66,8 +73,8 @@ function getTooltip({object}: PickingInfo) {
   const count = object.count;
 
   return `\
-    latitude: ${Number.isFinite(lat) ? lat.toFixed(6) : ''}
-    longitude: ${Number.isFinite(lng) ? lng.toFixed(6) : ''}
+    latitude: ${Number.isFinite(lat) ? lat.toFixed(6) : ""}
+    longitude: ${Number.isFinite(lng) ? lng.toFixed(6) : ""}
     ${count} Accidents`;
 }
 
@@ -78,7 +85,7 @@ export default function App({
   mapStyle = MAP_STYLE,
   radius = 1000,
   upperPercentile = 100,
-  coverage = 1
+  coverage = 1,
 }: {
   data?: DataPoint[] | null;
   mapStyle?: string;
@@ -86,32 +93,34 @@ export default function App({
   upperPercentile?: number;
   coverage?: number;
 }) {
-  const layers = [
-    new HexagonLayer<DataPoint>({
-      id: 'heatmap',
-      gpuAggregation: true,
-      colorRange,
-      coverage,
-      data,
-      elevationRange: [0, 3000],
-      elevationScale: data && data.length ? 50 : 0,
-      extruded: true,
-      getPosition: d => d,
-      pickable: true,
-      radius,
-      upperPercentile,
-      material: {
-        ambient: 0.64,
-        diffuse: 0.6,
-        shininess: 32,
-        specularColor: [51, 51, 51]
-      },
-
-      transitions: {
-        elevationScale: 3000
-      }
-    })
-  ];
+  const layers =
+    data && data.length > 0
+      ? [
+          new HexagonLayer<DataPoint>({
+            id: "heatmap",
+            pickable: false,
+            gpuAggregation: true,
+            colorRange,
+            coverage,
+            data,
+            elevationRange: [0, 3000],
+            elevationScale: 50,
+            extruded: true,
+            getPosition: (d) => d,
+            radius,
+            upperPercentile,
+            material: {
+              ambient: 0.64,
+              diffuse: 0.6,
+              shininess: 32,
+              specularColor: [51, 51, 51],
+            },
+            transitions: {
+              elevationScale: 3000,
+            },
+          }),
+        ]
+      : [];
 
   return (
     <DeckGL
@@ -132,7 +141,11 @@ export async function renderToDOM(container: HTMLDivElement) {
 
   const data = (await load(DATA_URL, CSVLoader)).data;
   const points: DataPoint[] = data
-    .map(d => (Number.isFinite(d.lng) ? [d.lng, d.lat] : null))
-    .filter(Boolean);
+    .map((d: any) => {
+      const lon = Number(d.longitude);
+      const lat = Number(d.latitude);
+      return Number.isFinite(lon) && Number.isFinite(lat) ? [lon, lat] : null;
+    })
+    .filter(Boolean) as DataPoint[];
   root.render(<App data={points} />);
 }
