@@ -13,6 +13,8 @@ import { load } from "@loaders.gl/core";
 
 import type { Color, PickingInfo, MapViewState } from "@deck.gl/core";
 
+import { ScatterplotLayer } from "@deck.gl/layers";
+
 // Source data CSV
 // const DATA_URL =
 //   'https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/3d-heatmap/heatmap-data.csv';
@@ -43,10 +45,10 @@ const lightingEffect = new LightingEffect({
 });
 
 const INITIAL_VIEW_STATE: MapViewState = {
-  longitude: -1.415727,
-  latitude: 52.232395,
-  zoom: 6.6,
-  minZoom: 5,
+  longitude: -122.3321,
+  latitude: 47.6062,
+  zoom: 5,
+  minZoom: 3,
   maxZoom: 15,
   pitch: 40.5,
   bearing: -27,
@@ -107,7 +109,7 @@ export default function App({
             elevationScale: 50,
             extruded: true,
             getPosition: (d) => d,
-            radius,
+            radius: 2000,
             upperPercentile,
             material: {
               ambient: 0.64,
@@ -134,18 +136,25 @@ export default function App({
     </DeckGL>
   );
 }
-
 export async function renderToDOM(container: HTMLDivElement) {
   const root = createRoot(container);
-  root.render(<App />);
 
   const data = (await load(DATA_URL, CSVLoader)).data;
   const points: DataPoint[] = data
     .map((d: any) => {
       const lon = Number(d.longitude);
       const lat = Number(d.latitude);
-      return Number.isFinite(lon) && Number.isFinite(lat) ? [lon, lat] : null;
+      if (
+        Number.isFinite(lon) &&
+        Number.isFinite(lat) &&
+        lon !== 0 &&
+        lat !== 0
+      ) {
+        return [lon, lat];
+      }
+      return null;
     })
     .filter(Boolean) as DataPoint[];
+
   root.render(<App data={points} />);
 }
